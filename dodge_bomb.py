@@ -12,7 +12,19 @@ DELTA = {
     pg.K_RIGHT:(5,0),
 }
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
+def check_bound(rct:pg.Rect) -> tuple[bool,bool]:
+    """
+    引数で与えられたrectが画面の外か中かを判定
+    引数:こうかとんRect爆弾
+    戻り値:真理値タプル(横、縦)/画面内Ture,画面外False
+    """
+    yoko = True
+    tate = True
+    if rct.left < 0 or WIDTH < rct.right:
+        yoko = False
+    if rct.top < 0 or HEIGHT < rct.bottom:
+        tate = False
+    return yoko,tate
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -43,8 +55,16 @@ def main():
                 sum_mv[0] += tpl[0]
                 sum_mv[1] += tpl[1]
         kk_rct.move_ip(sum_mv)
+        # こうかとんが画面外なら、元の位置にももどす
+        if check_bound(kk_rct) != (True,True):
+            kk_rct.move_ip(-sum_mv[0],-sum_mv[1])
         screen.blit(kk_img, kk_rct)
         bb_rct.move_ip(vx, vy) #爆弾動く
+        yoko, tate = check_bound(bb_rct)
+        if not yoko:#横にはみでる
+            vx *= -1
+        if not tate:#縦にはみ出る
+            vy *= -1
         screen.blit(bb_img,bb_rct)
         pg.display.update()
         tmr += 1
