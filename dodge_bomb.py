@@ -2,6 +2,7 @@ import os
 import random
 import sys
 import pygame as pg
+import time
 
 
 WIDTH, HEIGHT = 1100, 650
@@ -11,6 +12,11 @@ DELTA = {
     pg.K_LEFT:(-5,0),
     pg.K_RIGHT:(5,0),
 }
+saccs = [a for a in range(1, 11)]
+for r in range(1, 11):
+    bb_img = pg.Surface((20*r, 20*r))
+    pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 def check_bound(rct:pg.Rect) -> tuple[bool,bool]:
     """
@@ -25,6 +31,25 @@ def check_bound(rct:pg.Rect) -> tuple[bool,bool]:
     if rct.top < 0 or HEIGHT < rct.bottom:
         tate = False
     return yoko,tate
+def gameover(screen: pg.Surface) -> None:
+    k_img = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
+    k1_rct = k_img.get_rect()
+    k1_rct.center = 350,(HEIGHT/2+15)
+    k2_rct = k_img.get_rect()
+    k2_rct.center = 750,(HEIGHT/2+15)
+    BRK = pg.Surface((WIDTH,HEIGHT))
+    pg.draw.rect(BRK,(0,0,0),pg.Rect(0,0,WIDTH, HEIGHT))
+    BRK.set_alpha(120)
+    screen.blit(BRK,(0,0))
+    fonto = pg.font.Font(None, 80)
+    txt = fonto.render("Game over",
+    True, (255, 255, 255))
+    screen.blit(txt, [400, HEIGHT/2])
+    screen.blit(k_img, k1_rct)
+    screen.blit(k_img, k2_rct)
+
+    pg.display.update()
+    time.sleep(5)
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -42,11 +67,13 @@ def main():
     vy = 5 # 爆弾速度ベクトル
     clock = pg.time.Clock()
     tmr = 0
+    
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
                 return
         if kk_rct.colliderect(bb_rct):
+            gameover(screen)
             return #ゲームオーバー 
         screen.blit(bg_img, [0, 0]) 
 
