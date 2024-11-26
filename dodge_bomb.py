@@ -114,11 +114,11 @@ def main():
             vx *= -1
         if not tate:#縦にはみ出る
             vy *= -1
-        bb_img = bb_imgs[min(tmr//200, 9)]
+        bb_img = bb_imgs[min(tmr//500, 9)]
         bb_rct.width = bb_img.get_rect().width
         bb_rct.height = bb_img.get_rect().height
-        avx = vx*bb_accs[min(tmr//200, 9)]
-        avy = vy*bb_accs[min(tmr//200, 9)]
+        avx = vx*bb_accs[min(tmr//500, 9)]
+        avy = vy*bb_accs[min(tmr//500, 9)]
         bb_rct.move_ip(avx,avy) #爆弾動く
 
         screen.blit(bb_img,bb_rct)
