@@ -12,12 +12,9 @@ DELTA = {
     pg.K_LEFT:(-5,0),
     pg.K_RIGHT:(5,0),
 }
-saccs = [a for a in range(1, 11)]
-for r in range(1, 11):
-    bb_img = pg.Surface((20*r, 20*r))
-    pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 def check_bound(rct:pg.Rect) -> tuple[bool,bool]:
     """
     引数で与えられたrectが画面の外か中かを判定
@@ -31,12 +28,33 @@ def check_bound(rct:pg.Rect) -> tuple[bool,bool]:
     if rct.top < 0 or HEIGHT < rct.bottom:
         tate = False
     return yoko,tate
+
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    """
+    時間経過によって爆弾を加速して拡大させる
+    引数:なし
+    戻り値:タプルリスト(拡大)/タプルリスト(加速)
+    """
+    saccs = [a for a in range(1, 11)]
+    kaku = []
+    for r in range(1, 11):
+        bb_img = pg.Surface((20*r, 20*r))
+        pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
+        bb_img.set_colorkey((0, 0, 0))#赤に染める
+        kaku.append(bb_img)
+    return kaku,saccs
+
 def gameover(screen: pg.Surface) -> None:
+    """
+    ゲームオーバーの時に画面に画面を暗くして文字とこうかとんを表示
+    引数:screen
+    戻り値:なし
+    """
     k_img = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
     k1_rct = k_img.get_rect()
-    k1_rct.center = 350,(HEIGHT/2+15)
+    k1_rct.center = 350,(HEIGHT//2)
     k2_rct = k_img.get_rect()
-    k2_rct.center = 750,(HEIGHT/2+15)
+    k2_rct.center = 750,(HEIGHT//2)
     BRK = pg.Surface((WIDTH,HEIGHT))
     pg.draw.rect(BRK,(0,0,0),pg.Rect(0,0,WIDTH, HEIGHT))
     BRK.set_alpha(120)
@@ -44,7 +62,9 @@ def gameover(screen: pg.Surface) -> None:
     fonto = pg.font.Font(None, 80)
     txt = fonto.render("Game over",
     True, (255, 255, 255))
-    screen.blit(txt, [400, HEIGHT/2])
+    txt_rct = txt.get_rect()
+    txt_rct.center = WIDTH//2, HEIGHT//2
+    screen.blit(txt, txt_rct)
     screen.blit(k_img, k1_rct)
     screen.blit(k_img, k2_rct)
 
@@ -61,6 +81,7 @@ def main():
     bb_img = pg.Surface((20,20)) #爆弾用の空のSuraface
     pg.draw.circle(bb_img,(255,0,0),(10,10),10)
     bb_img.set_colorkey((0, 0, 0))#赤に染める
+    bb_imgs, bb_accs = init_bb_imgs()
     bb_rct = bb_img.get_rect()#爆弾Rectの抽出
     bb_rct.center = random.randint(0,WIDTH),random.randint(0,HEIGHT)
     vx = 5
@@ -88,12 +109,18 @@ def main():
         if check_bound(kk_rct) != (True,True):
             kk_rct.move_ip(-sum_mv[0],-sum_mv[1])
         screen.blit(kk_img, kk_rct)
-        bb_rct.move_ip(vx, vy) #爆弾動く
         yoko, tate = check_bound(bb_rct)
         if not yoko:#横にはみでる
             vx *= -1
         if not tate:#縦にはみ出る
             vy *= -1
+        bb_img = bb_imgs[min(tmr//200, 9)]
+        bb_rct.width = bb_img.get_rect().width
+        bb_rct.height = bb_img.get_rect().height
+        avx = vx*bb_accs[min(tmr//200, 9)]
+        avy = vy*bb_accs[min(tmr//200, 9)]
+        bb_rct.move_ip(avx,avy) #爆弾動く
+
         screen.blit(bb_img,bb_rct)
         pg.display.update()
         tmr += 1
